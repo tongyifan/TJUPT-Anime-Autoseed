@@ -78,14 +78,16 @@ class Autoseed:
             else:
                 logger.info("未找到指定info_hash「%s」对应的任务，不是发种机提供的任务，跳过", self.info_hash)
                 exit()
+        else:
+            if type(config_id) == int:
+                config_id = uuid.UUID(int=config_id)
+            else:
+                config_id = uuid.UUID(config_id)
 
         self.torrent_path = os.path.join(base_path, "torrents/{}.torrent".format(self.info_hash))
         if not os.path.exists(self.torrent_path):
             logger.error("未找到info_hash「%s」对应的种子文件", self.info_hash)
             exit()
-
-        else:
-            config_id = uuid.UUID(config_id)
 
         configs = read_configs()
         config_name = [c for c in configs if configs[c]['id'] == config_id]
