@@ -71,18 +71,19 @@ class Autoseed:
             logger.error("未在qB中找到info_hash为「%s」的种子", self.info_hash)
             exit()
 
-        self.torrent_path = os.path.join(base_path, "torrents/{}.torrent".format(self.info_hash))
-        if not os.path.exists(self.torrent_path):
-            logger.error("未找到info_hash「%s」对应的种子文件")
-            exit()
-
         if not config_id:
             config_id = self.db.get_config_id(self.info_hash)
             if config_id:
                 config_id = uuid.UUID(config_id[0])
             else:
-                logger.error("未找到指定info_hash「%s」对应的任务，无法获取配置项ID", self.info_hash)
+                logger.info("未找到指定info_hash「%s」对应的任务，不是发种机提供的任务，跳过", self.info_hash)
                 exit()
+
+        self.torrent_path = os.path.join(base_path, "torrents/{}.torrent".format(self.info_hash))
+        if not os.path.exists(self.torrent_path):
+            logger.error("未找到info_hash「%s」对应的种子文件", self.info_hash)
+            exit()
+
         else:
             config_id = uuid.UUID(config_id)
 
