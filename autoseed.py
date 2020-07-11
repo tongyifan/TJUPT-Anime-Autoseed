@@ -220,7 +220,7 @@ class Autoseed:
     def get_torrent_format(self):
         with open(self.torrent_path, 'rb') as fp:
             torrent = bencoder.decode(fp.read())
-        info = bencoder.decode(torrent)[b'info']
+        info = torrent[b'info']
         regex = re.compile("MP4|MKV", re.I)
         name = info[b'name'].decode('utf-8')  # 文件夹名/文件名
 
