@@ -155,6 +155,17 @@ class Autoseed:
             self.qb.download_from_link("https://tjupt.org/download.php?id={}".format(tid), cookie=TJUPT_COOKIES_RAW)
             logger.info("成功推送到qB，开始做种")
             self.db.set_task_done(self.info_hash)
+        elif '该种子已存在' in resp.text:
+            tid = re.findall("details\\.php\\?id=(\\d+)&", resp.text)
+            if tid:
+                tid = tid[0]
+                logger.info("种子「%s」(%s)已存在，种子ID为%s，开始辅种", self.torrent_name, self.info_hash, tid)
+
+                self.qb.download_from_link("https://tjupt.org/download.php?id={}".format(tid), cookie=TJUPT_COOKIES_RAW)
+                logger.info("成功推送到qB，开始做种")
+                self.db.set_task_done(self.info_hash)
+            else:
+                logger.error("种子「%s」(%s)已存在，但未解析出种子ID...", self.torrent_name, self.info_hash)
         else:
             reason = "未知原因"
             if '上传失败' in resp.text:
