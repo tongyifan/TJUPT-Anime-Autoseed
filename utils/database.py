@@ -36,7 +36,7 @@ class Database:
         try:
             self.cursor.execute("INSERT INTO tasks (config_id, info_hash) VALUES (?, ?)", (config_id, info_hash,))
         except sqlite3.IntegrityError:
-            logger.error("重复任务：%s", info_hash)
+            logger.warning("重复任务：%s", info_hash)
             return 0
 
         logger.info("插入数据库成功：%s", info_hash)
