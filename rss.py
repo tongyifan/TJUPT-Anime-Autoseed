@@ -50,7 +50,7 @@ class RSSReader:
 
         logger.info("从RSS中读取到%s个新资源", len(items))
 
-        with open("instance/cache.json", 'w') as fp:
+        with open(os.path.join(base_path, "instance/cache.json"), 'w') as fp:
             json.dump({**items, **self.cache}, fp)
 
         for item in items:
