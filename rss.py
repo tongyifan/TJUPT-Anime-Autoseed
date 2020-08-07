@@ -22,7 +22,10 @@ class RSSReader:
         self.cache = {}
         if os.path.exists(os.path.join(base_path, 'instance/cache.json')):
             with open(os.path.join(base_path, "instance/cache.json"), 'r') as fp:
-                self.cache = json.load(fp)
+                try:
+                    self.cache = json.load(fp)
+                except json.decoder.JSONDecodeError:
+                    os.remove(os.path.join(base_path, "instance/cache.json"))
 
     def connect(self):
         if not self.qb:
