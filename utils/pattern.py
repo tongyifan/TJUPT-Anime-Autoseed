@@ -39,10 +39,10 @@ pattern_group = [
         "(?P<full_name>\[(?P<group>[^\[\]]+?)\](?P<n_s>\[)?(?P<search_name>[^\[\]]+)(?(n_s)\])"
         "\[?(?P<episode>\d+(\.?\d+|-\d+|[ _]?[Vv]2)?)\]?.+?)"
         "(\.(?P<filetype>\w+)$|$)"
-    )
+    ),
 ]
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import requests
 
     test_txt_url = "https://gist.github.com/Rhilip/34ad82070d71bb3fa75f293d24101588/raw/9%2520-%2520RegExp%2520Test%2520set.txt"

@@ -7,7 +7,7 @@ TJUPT_COOKIES_RAW = ""
 QBITTORRENT_CONFIG = {
     "url": "http://127.0.0.1:8080/",
     "username": "username",
-    "password": "password"
+    "password": "password",
 }
 
 # RSS入口，rss.py会轮询这些入口
@@ -15,7 +15,7 @@ RSS_ENTRIES = [
     "https://api.rhilip.info/rss/dmhy.xml",
     "https://acg.rip/.xml",
     "https://bangumi.moe/rss/latest",
-    "https://mikanani.me/RSS/Classic"
+    "https://mikanani.me/RSS/Classic",
 ]
 
 # ServerChan，用于Error级信息的上报，见 http://sc.ftqq.com/3.version
