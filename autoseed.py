@@ -133,7 +133,7 @@ class Autoseed:
         if 'cname' not in info or 'issuedate' not in info or 'descr' not in info:
             bangumi_info = self.get_bangumi_data()
             info = {**bangumi_info, **info}
-            info['ename'] = bangumi_info['alternate_name'] if not info['ename'] else info['ename']
+            info['ename'] = bangumi_info['alternate_name'] if 'ename' not in info else info['ename']
 
         return info
 
