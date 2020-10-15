@@ -32,9 +32,10 @@ def read_configs(path=os.path.join(base_path, "instance/configs/*.yaml")):
                     enabled_items[item] = this_item
 
         if updated:
-            logger.info("发现新项目，已更新配置文件中对应id数据")
             with open(config, "w") as fp:
                 dump(data, fp, Dumper, allow_unicode=True)
+            os.remove(os.path.join(base_path, "instance/cache.json"))
+            logger.info("发现新项目，已更新配置文件中对应id数据并清理缓存")
 
     logger.info("已读取%s个已启用的发布项目", len(enabled_items))
     return enabled_items
