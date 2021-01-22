@@ -1,6 +1,12 @@
+import base64
 import hashlib
 import json
 import os
+import time
+import urllib
+from argparse import ArgumentParser
+from datetime import datetime
+from urllib.parse import urlencode
 
 import bencoder
 import feedparser
@@ -14,17 +20,26 @@ from utils.logger import logger
 
 
 class RSSReader:
-    def __init__(self):
-        self.configs = read_configs()
+    def __init__(self, mode, config_id=None):
+        self.mode = mode
+        self.cache = {}
+        if self.mode != "rss":
+            if config_id is None:
+                logger.error("使用search模式时必须传入config_id")
+                exit()
+            self.configs = read_configs(
+                os.path.join(base_path, f"instance/configs/{config_id}.yaml")
+            )
+        else:
+            self.configs = read_configs()
+            if os.path.exists(os.path.join(base_path, "instance/cache.json")):
+                with open(os.path.join(base_path, "instance/cache.json"), "r") as fp:
+                    try:
+                        self.cache = json.load(fp)
+                    except json.decoder.JSONDecodeError:
+                        os.remove(os.path.join(base_path, "instance/cache.json"))
         self.qb = None
         self.db = None
-        self.cache = {}
-        if os.path.exists(os.path.join(base_path, "instance/cache.json")):
-            with open(os.path.join(base_path, "instance/cache.json"), "r") as fp:
-                try:
-                    self.cache = json.load(fp)
-                except json.decoder.JSONDecodeError:
-                    os.remove(os.path.join(base_path, "instance/cache.json"))
 
     def connect(self):
         if not self.qb:
@@ -38,10 +53,19 @@ class RSSReader:
 
     def read_rss(self):
         items = {}
-        for entry in RSS_ENTRIES:
+        this_rss_entries = (
+            RSS_ENTRIES if self.mode == "rss" else self.generate_entries()
+        )
+        for entry in this_rss_entries:
             d = feedparser.parse(entry)
             for item in d.entries:
                 if item["title"] in items or item["title"] in self.cache:
+                    continue
+
+                published_timestamp = (
+                    time.mktime(item["published_parsed"]) - time.timezone
+                )
+                if time.time() - published_timestamp > 30 * 24 * 60 * 60:  # 跳过超过了30天的资源
                     continue
 
                 if "links" in item:
@@ -50,7 +74,16 @@ class RSSReader:
                             link["type"] == "application/x-bittorrent"
                             or ".torrent" in link["href"]
                         ):
-                            items[item["title"]] = link["href"]
+                            if "magnet" in link["href"]:
+                                hex_info_hash = base64.b32decode(
+                                    link["href"].lstrip("magnet:?xt=urn:btih:")[:32]
+                                ).hex()
+
+                                items[
+                                    item["title"]
+                                ] = f"https://dl.dmhy.org/{datetime.fromtimestamp(published_timestamp).strftime('%Y/%m/%d')}/{hex_info_hash}.torrent"
+                            else:
+                                items[item["title"]] = link["href"]
                             break
                 elif "link" in item:
                     items[item["title"]] = item["link"]
@@ -107,7 +140,33 @@ class RSSReader:
 
                     break  # 不再继续匹配其他配置项
 
+    def generate_entries(self):
+        entries = []
+        for config in self.configs:
+            keyword = urlencode({"keyword": self.configs[config]["keyword"]})
+            entries.append(f"https://share.dmhy.org/topics/rss/rss.xml?{keyword}")
+
+        return entries
+
 
 if __name__ == "__main__":
-    rr = RSSReader()
+    parse = ArgumentParser()
+    parse.add_argument(
+        "-m",
+        "--mode",
+        help="rss为常规更新模式，search为通过搜索添加任务模式",
+        dest="mode",
+        choices=["rss", "search"],
+        default="rss",
+    )
+    parse.add_argument(
+        "-c",
+        "--config_id",
+        help="rss为常规更新模式，search为通过搜索添加任务模式",
+        dest="config_id",
+        default=None,
+    )
+    argv = parse.parse_args()
+
+    rr = RSSReader(argv.mode, argv.config_id)
     rr.read_rss()
