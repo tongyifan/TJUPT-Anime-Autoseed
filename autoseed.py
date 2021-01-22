@@ -209,6 +209,7 @@ class Autoseed:
             self.qb.download_from_link(
                 "https://tjupt.org/download.php?id={}".format(tid),
                 cookie=TJUPT_COOKIES_RAW,
+                savepath=QBITTORRENT_CONFIG["savepath"],
             )
             logger.info("成功推送到qB，开始做种")
             self.db.set_task_done(self.info_hash)
@@ -223,6 +224,7 @@ class Autoseed:
                 self.qb.download_from_link(
                     "https://tjupt.org/download.php?id={}".format(tid),
                     cookie=TJUPT_COOKIES_RAW,
+                    savepath=QBITTORRENT_CONFIG["savepath"],
                 )
                 logger.info("成功推送到qB，开始做种")
                 self.db.set_task_done(self.info_hash)

@@ -8,6 +8,7 @@ QBITTORRENT_CONFIG = {
     "url": "http://127.0.0.1:8080/",
     "username": "username",
     "password": "password",
+    "savepath": "savepath",
 }
 
 # RSS入口，rss.py会轮询这些入口
