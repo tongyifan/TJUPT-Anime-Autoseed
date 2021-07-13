@@ -35,6 +35,11 @@ pattern_group = [
         "(?P<episode>\d+(\.?\d+|-\d+|[ _]?[Vv]2)?) \[.+?[Pp].+?\])"
         "(\.(?P<filetype>\w+)$|$)"
     ),
+    re.compile(  # Anime - Nekomoe kissaten WebRip
+        "(?P<full_name>\[(?P<group>[^\[\]]+?)\] (?P<search_name>.+) "
+        "(?P<episode>\d+(\.?\d+|-\d+|[ _]?[Vv]2)?) \[.+?[Pp].+?\])"
+        "(\.(?P<filetype>\w+)$|$)"
+    ),
     re.compile(  # Anime - Normal Pattern
         "(?P<full_name>\[(?P<group>[^\[\]]+?)\](?P<n_s>\[)?(?P<search_name>[^\[\]]+)(?(n_s)\])"
         "\[?(?P<episode>\d+(\.?\d+|-\d+|[ _]?[Vv]2)?)\]?.+?)"
@@ -48,6 +53,10 @@ if __name__ == "__main__":
     test_txt_url = "https://gist.github.com/Rhilip/34ad82070d71bb3fa75f293d24101588/raw/9%2520-%2520RegExp%2520Test%2520set.txt"
     r = requests.get(test_txt_url)
     test_list = r.text.split("\n")
+    # Test case for Nekomoe kissaten WebRip
+    test_list.append(
+        "[Nekomoe kissaten] Seijo no Maryoku wa Bannou Desu 12 [WebRip 1080p HEVC-10bit AAC ASSx2].mkv"
+    )
     for test_item in test_list:
         print("Test item: {}".format(test_item))
         for _id, ptn in enumerate(pattern_group):
