@@ -38,8 +38,8 @@ class Autoseed:
         torrent_info = self.format_torrent_info()
         self.post_to_site(torrent_info)
 
-    def _connect(self):
-        if not self.qb:
+    def _connect(self, skip_qb=False):
+        if not skip_qb and not self.qb:
             try:
                 self.qb = Client(QBITTORRENT_CONFIG["url"])
                 self.qb.login(
@@ -66,19 +66,7 @@ class Autoseed:
         self.info_hash = argv.info_hash
         config_id = argv.config_id
 
-        self._connect()
-        torrents = (
-            self.qb.torrents()
-        )  # get_torrent(info_hash)并不能获得种子名，因此只能通过获取全部种子来获得种子名
-        for torrent in torrents:
-            if torrent["hash"] == self.info_hash:
-                self.torrent_name = torrent["name"]
-                self.torrent = torrent
-                break
-
-        if not self.torrent_name:
-            logger.error("未在qB中找到info_hash为「%s」的种子", self.info_hash)
-            exit()
+        self._connect(skip_qb=True)  # 先只连接db并检查任务是否合法，避免每次都连接qb导致qb卡顿
 
         if not config_id:
             config_id = self.db.get_config_id(self.info_hash)
@@ -108,6 +96,20 @@ class Autoseed:
             self.config["config_name"] = config_name[0]
         else:
             logger.error("未找到ID为「%s」的配置项", config_id)
+            exit()
+
+        self._connect()
+        torrents = (
+            self.qb.torrents()
+        )  # get_torrent(info_hash)并不能获得种子名，因此只能通过获取全部种子来获得种子名
+        for torrent in torrents:
+            if torrent["hash"] == self.info_hash:
+                self.torrent_name = torrent["name"]
+                self.torrent = torrent
+                break
+
+        if not self.torrent_name:
+            logger.error("未在qB中找到info_hash为「%s」的种子", self.info_hash)
             exit()
 
         logger.info(
