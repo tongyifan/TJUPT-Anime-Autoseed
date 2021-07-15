@@ -40,6 +40,11 @@ pattern_group = [
         "(?P<episode>\d+(\.?\d+|-\d+|[ _]?[Vv]2)?) \[.+?[Pp].+?\])"
         "(\.(?P<filetype>\w+)$|$)"
     ),
+    re.compile(  # Anime - YUI-7
+        "(?P<full_name>\[(?P<group>[^\[\]]+?)]\s\[(?P<search_name>[^\[\]]+)]\s?"
+        "\[?(?P<episode>\d+(\.?\d+|-\d+|[ _]?[Vv]2)?)\]?.+?)"
+        "(\.(?P<filetype>\w+)$|$)"
+    ),
     re.compile(  # Anime - Normal Pattern
         "(?P<full_name>\[(?P<group>[^\[\]]+?)\](?P<n_s>\[)?(?P<search_name>[^\[\]]+)(?(n_s)\])"
         "\[?(?P<episode>\d+(\.?\d+|-\d+|[ _]?[Vv]2)?)\]?.+?)"
@@ -53,9 +58,18 @@ if __name__ == "__main__":
     test_txt_url = "https://gist.github.com/Rhilip/34ad82070d71bb3fa75f293d24101588/raw/9%2520-%2520RegExp%2520Test%2520set.txt"
     r = requests.get(test_txt_url)
     test_list = r.text.split("\n")
+    # test_list = []
     # Test case for Nekomoe kissaten WebRip
     test_list.append(
         "[Nekomoe kissaten] Seijo no Maryoku wa Bannou Desu 12 [WebRip 1080p HEVC-10bit AAC ASSx2].mkv"
+    )
+    # Test cases for YUI-7
+    test_list.extend(
+        [
+            "[UHA-WINGS&YUI-7] [Yami Shibai 9][01](CHS) (1080p) [CC2E4DC4]_x264.mp4",
+            "[UHA-WINGS&YUI-7] [Yami Shibai 8] [13] [x264 1080p][CHS].mp4",
+            "[YUI-7][Yami Shibai 6][12][GB][X264_AAC][720P].mp4",
+        ]
     )
     for test_item in test_list:
         print("Test item: {}".format(test_item))
