@@ -171,7 +171,6 @@ db.sqlite3
 db.sqlite3-journal
 
 # Flask stuff:
-instance/
 .webassets-cache
 
 # Scrapy stuff:
@@ -244,8 +243,7 @@ dmypy.json
 
 *.torrent
 
-config/*.yaml
-!config/example.yaml
+instance/configs/*.yaml
 
 config.py
 
