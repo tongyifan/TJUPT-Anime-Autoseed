@@ -19,6 +19,8 @@ RSS_ENTRIES = [
     "https://mikanani.me/RSS/Classic",
 ]
 
+KEYWORD_BLACKLIST = ["BDRip", "BDMV", "Blu-ray"]
+
 # ServerChan，用于Error级信息的上报，见 http://sc.ftqq.com/3.version
 SERVERCHAN_TOKEN = ""
 

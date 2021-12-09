@@ -13,7 +13,7 @@ import feedparser
 import requests
 from qbittorrent import Client
 
-from config import RSS_ENTRIES, QBITTORRENT_CONFIG, base_path
+from config import RSS_ENTRIES, QBITTORRENT_CONFIG, KEYWORD_BLACKLIST, base_path
 from utils.configReader import read_configs
 from utils.database import Database
 from utils.logger import logger
@@ -95,7 +95,9 @@ class RSSReader:
 
         for item in items:
             for config in self.configs:
-                if all(k in item for k in self.configs[config]["keyword"].split(" ")):
+                if all(
+                    k in item for k in self.configs[config]["keyword"].split(" ")
+                ) and all(k not in item for k in KEYWORD_BLACKLIST):
                     logger.info("资源「%s」命中任务「%s」，推送至qB", item, config)
                     self.connect()
                     try:
