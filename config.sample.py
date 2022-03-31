@@ -17,6 +17,7 @@ RSS_ENTRIES = [
     "https://acg.rip/.xml",
     "https://bangumi.moe/rss/latest",
     "https://mikanani.me/RSS/Classic",
+    "https://comicat.org/rss.xml",
 ]
 
 KEYWORD_BLACKLIST = ["BDRip", "BDMV", "Blu-ray"]
