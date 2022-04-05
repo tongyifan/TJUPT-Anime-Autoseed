@@ -299,9 +299,11 @@ class Autoseed:
         regex = re.compile("MP4|MKV", re.I)
         name = info[b"name"].decode("utf-8")  # 文件夹名/文件名
 
+        source = "WEBRip" if "web" in name.lower() else "TVRip"
+
         torrent_format = regex.findall(name)
         if torrent_format:
-            return torrent_format[0].upper()
+            return "/".join([torrent_format[0].upper(), source])
 
         files = info.get(b"files")
         if files is None:
@@ -312,8 +314,8 @@ class Autoseed:
                     "/".join(i.decode("utf-8") for i in file[b"path"])
                 )
                 if torrent_format:
-                    return torrent_format[0].upper()
-        return ""
+                    return "/".join([torrent_format[0].upper(), source])
+        return source
 
 
 if __name__ == "__main__":
