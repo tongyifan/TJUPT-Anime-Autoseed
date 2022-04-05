@@ -190,6 +190,7 @@ class Autoseed:
             )
         except requests.exceptions.RequestException:
             logger.error("种子「%s」(%s)发布失败，网络错误", self.torrent_name, self.info_hash)
+            self.db.set_task_error(self.info_hash)
             exit()
 
         if resp.status_code >= 400:
@@ -199,6 +200,7 @@ class Autoseed:
                 self.info_hash,
                 resp.status_code,
             )
+            self.db.set_task_error(self.info_hash)
             exit()
 
         tid = re.findall("details\\.php\\?id=(\\d+)&", resp.url)
@@ -215,6 +217,7 @@ class Autoseed:
             )
             logger.info("成功推送到qB，开始做种")
             self.db.set_task_done(self.info_hash)
+            self.retry_error_tasks()
         elif "该种子已存在" in resp.text:
             tid = re.findall("details\\.php\\?id=(\\d+)&", resp.text)
             if tid:
@@ -230,7 +233,9 @@ class Autoseed:
                 )
                 logger.info("成功推送到qB，开始做种")
                 self.db.set_task_done(self.info_hash)
+                self.retry_error_tasks()
             else:
+                self.db.set_task_error(self.info_hash)
                 logger.error(
                     "种子「%s」(%s)已存在，但未解析出种子ID...", self.torrent_name, self.info_hash
                 )
@@ -245,6 +250,8 @@ class Autoseed:
                 reason = reason[0] if reason else "未知原因"
             elif "login" in resp.url:
                 reason = "Cookies过期"
+
+            self.db.set_task_error(self.info_hash)
             logger.error(
                 "种子「%s」(%s)发布失败，原因：%s", self.torrent_name, self.info_hash, reason
             )
@@ -316,6 +323,13 @@ class Autoseed:
                 if torrent_format:
                     return "/".join([torrent_format[0].upper(), source])
         return source
+
+    def retry_error_tasks(self):
+        # 一次只取一个，程序会迭代执行直至所有错误的任务被执行一遍
+        info_hash = self.db.get_error_task()
+        if info_hash:
+            self.info_hash = info_hash
+            self.run()
 
 
 if __name__ == "__main__":

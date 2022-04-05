@@ -61,3 +61,14 @@ class Database:
         self.cursor.execute(
             "UPDATE tasks SET done = 1 WHERE info_hash = ?", (info_hash,)
         )
+
+    def set_task_error(self, info_hash):
+        self.cursor.execute(
+            "UPDATE tasks SET done = -1 WHERE info_hash = ?", (info_hash,)
+        )
+
+    def get_error_task(self):
+        self.cursor.execute(
+            "SELECT info_hash FROM tasks WHERE done = -1 ORDER BY RANDOM()"
+        )
+        return self.cursor.fetchone()
