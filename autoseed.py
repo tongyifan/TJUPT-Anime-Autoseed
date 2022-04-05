@@ -9,7 +9,7 @@ import bencoder
 import requests
 from qbittorrent import Client
 
-from config import QBITTORRENT_CONFIG, base_path, TJUPT_COOKIES_RAW
+from config import QBITTORRENT_CONFIG, base_path, TJUPT_COOKIES_RAW, PTGEN_ENDPOINTS
 from utils.configReader import read_configs
 from utils.database import Database
 from utils.logger import logger
@@ -191,7 +191,7 @@ class Autoseed:
         except requests.exceptions.RequestException:
             logger.error("种子「%s」(%s)发布失败，网络错误", self.torrent_name, self.info_hash)
             self.db.set_task_error(self.info_hash)
-            exit()
+            return
 
         if resp.status_code >= 400:
             logger.error(
@@ -201,7 +201,7 @@ class Autoseed:
                 resp.status_code,
             )
             self.db.set_task_error(self.info_hash)
-            exit()
+            return
 
         tid = re.findall("details\\.php\\?id=(\\d+)&", resp.url)
         if tid:
@@ -261,12 +261,16 @@ class Autoseed:
             logger.error("无法获取Bangumi ID")
             return {}
 
-        try:
-            resp = requests.get(
-                "https://ptgen.tju.pt/infogen", {"url": self.config["bangumi"]}
-            )
-        except requests.exceptions.RequestException:
-            logger.error("访问PTGEN API时出现网络错误")
+        resp = None
+        for endpoint in PTGEN_ENDPOINTS:
+            try:
+                resp = requests.get(endpoint, {"url": self.config["bangumi"]})
+                break
+            except requests.exceptions.RequestException as exception:
+                logger.error("访问PTGEN API时出现网络错误（%s）: %s", endpoint, repr(exception))
+
+        if resp is None:
+            logger.error("未能成功从PTGEN APIs中解析数据")
             return {}
 
         if resp.status_code != 200:

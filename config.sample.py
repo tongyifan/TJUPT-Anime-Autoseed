@@ -25,5 +25,9 @@ KEYWORD_BLACKLIST = ["BDRip", "BDMV", "Blu-ray"]
 # ServerChan，用于Error级信息的上报，见 http://sc.ftqq.com/3.version
 SERVERCHAN_TOKEN = ""
 
+PTGEN_ENDPOINTS = [
+    "https://ptgen.tju.pt/infogen",
+]
+
 # -- 下面的不需要修改 --
 base_path = os.path.dirname(__file__)
