@@ -164,8 +164,7 @@ class Autoseed:
                 )
                 break
 
-        if "format" not in info or not info["format"]:
-            info["format"] = self.get_torrent_format()
+        info["format"] = self.get_torrent_format(info.get("format", ""))
 
         resolution = re.findall("(480|720|1080|1440|2160)", self.torrent_name)
         if resolution:
@@ -303,7 +302,7 @@ class Autoseed:
 
         return bangumi_result
 
-    def get_torrent_format(self):
+    def get_torrent_format(self, pattern_format):
         with open(self.torrent_path, "rb") as fp:
             torrent = bencoder.decode(fp.read())
         info = torrent[b"info"]
@@ -312,21 +311,21 @@ class Autoseed:
 
         source = "WEBRip" if "web" in name.lower() else "TVRip"
 
-        torrent_format = regex.findall(name)
-        if torrent_format:
-            return "/".join([torrent_format[0].upper(), source])
-
-        files = info.get(b"files")
-        if files is None:
-            return ""
+        if pattern_format != "":
+            return f"{pattern_format}/{source}"
         else:
-            for file in files:
-                torrent_format = regex.findall(
-                    "/".join(i.decode("utf-8") for i in file[b"path"])
-                )
-                if torrent_format:
-                    return "/".join([torrent_format[0].upper(), source])
-        return source
+            torrent_format = regex.findall(name)
+            if torrent_format:
+                return f"{torrent_format[0].upper()}/{source}"
+            else:
+                files = info.get(b"files", [])
+                for file in files:
+                    torrent_format = regex.findall(
+                        "/".join(i.decode("utf-8") for i in file[b"path"])
+                    )
+                    if torrent_format:
+                        return f"{torrent_format[0].upper()}/{source}"
+                return source
 
     def retry_error_tasks(self):
         # 一次只取一个，程序会迭代执行直至所有错误的任务被执行一遍
