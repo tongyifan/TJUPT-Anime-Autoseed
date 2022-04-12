@@ -331,7 +331,7 @@ class Autoseed:
         # 一次只取一个，程序会迭代执行直至所有错误的任务被执行一遍
         info_hash = self.db.get_error_task()
         if info_hash:
-            self.info_hash = info_hash
+            self.info_hash = info_hash[0]
             self.run()
 
 
