@@ -4,6 +4,7 @@ import traceback
 import uuid
 from argparse import ArgumentParser
 from http.cookies import SimpleCookie
+from typing import Union
 
 import bencoder
 import requests
@@ -29,7 +30,7 @@ class Autoseed:
     torrent_name: str = None
     torrent_path: str = None
 
-    config_id: int | str | uuid.UUID = None
+    config_id: Union[int, str, uuid.UUID] = None
     config: dict = None
 
     def run(self, info_hash, config_id=None):
