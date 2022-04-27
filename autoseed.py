@@ -88,17 +88,12 @@ class Autoseed:
             exit()
 
         self._connect()
-        torrents = (
-            self.qb.torrents()
-        )  # get_torrent(info_hash)并不能获得种子名，因此只能通过获取全部种子来获得种子名
         self.torrent_name = ""
-        for torrent in torrents:
-            if torrent["hash"] == self.info_hash:
-                self.torrent_name = torrent["name"]
-                self.torrent = torrent
-                break
-
-        if not self.torrent_name:
+        torrents = self.qb.torrents(hashes=self.info_hash)
+        if torrents:
+            self.torrent = torrents[0]
+            self.torrent_name = self.torrent["name"]
+        else:
             logger.error("未在qB中找到info_hash为「%s」的种子", self.info_hash)
             exit()
 
