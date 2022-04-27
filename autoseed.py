@@ -326,7 +326,7 @@ class Autoseed:
 
 if __name__ == "__main__":
     parse = ArgumentParser()
-    parse.add_argument("info_hash", help="种子的info_hash")
+    parse.add_argument("info_hash", help="种子的info_hash，传入retry时重试错误任务")
     parse.add_argument(
         "-c",
         "--config",
@@ -337,7 +337,7 @@ if __name__ == "__main__":
     argv = parse.parse_args()
 
     autoseed = Autoseed()
-    if argv.info_hash:
+    if argv.info_hash != "retry":
         try:
             autoseed.run(argv.info_hash, argv.config_id)
         except Exception as e:
