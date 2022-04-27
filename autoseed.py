@@ -319,6 +319,7 @@ class Autoseed:
 
     def retry_error_tasks(self):
         # 一次只取一个，程序会迭代执行直至所有错误的任务被执行一遍
+        self._connect(skip_qb=True)
         info_hash = self.db.get_error_task()
         if info_hash:
             self.run(info_hash[0])
