@@ -29,12 +29,14 @@ class Autoseed:
     torrent_name: str = None
     torrent_path: str = None
 
+    config_id: int | str | uuid.UUID = None
     config: dict = None
 
-    def __init__(self):
-        self.parse_argv()
+    def run(self, info_hash, config_id=None):
+        self.info_hash = info_hash
+        self.config_id = config_id
+        self.check_task_valid()
 
-    def run(self):
         torrent_info = self.format_torrent_info()
         self.post_to_site(torrent_info)
 
@@ -52,35 +54,21 @@ class Autoseed:
         if not self.db:
             self.db = Database()
 
-    def parse_argv(self):
-        parse = ArgumentParser()
-        parse.add_argument("info_hash", help="种子的info_hash")
-        parse.add_argument(
-            "-c",
-            "--config",
-            help="发布时使用的配置项str/int UUID",
-            dest="config_id",
-            default=None,
-        )
-        argv = parse.parse_args()
-        self.info_hash = argv.info_hash
-        config_id = argv.config_id
-
+    def check_task_valid(self):
         self._connect(skip_qb=True)  # 先只连接db并检查任务是否合法，避免每次都连接qb导致qb卡顿
 
-        if not config_id:
+        if not self.config_id:
             config_id = self.db.get_config_id(self.info_hash)
             if config_id:
-                config_id = uuid.UUID(config_id[0])
+                self.config_id = uuid.UUID(config_id[0])
             else:
                 logger.info("未找到指定info_hash「%s」对应的任务，不是发种机提供的任务，跳过", self.info_hash)
                 exit()
         else:
             try:
-                config_id = int(config_id)
-                config_id = uuid.UUID(int=config_id)
+                self.config_id = uuid.UUID(int=int(self.config_id))
             except ValueError:
-                config_id = uuid.UUID(config_id)
+                self.config_id = uuid.UUID(self.config_id)
 
         self.torrent_path = os.path.join(
             base_path, "torrents/{}.torrent".format(self.info_hash)
@@ -90,18 +78,19 @@ class Autoseed:
             exit()
 
         configs = read_configs()
-        config_name = [c for c in configs if configs[c]["id"] == config_id]
+        config_name = [c for c in configs if configs[c]["id"] == self.config_id]
         if config_name:
             self.config = configs[config_name[0]]
             self.config["config_name"] = config_name[0]
         else:
-            logger.error("未找到ID为「%s」的配置项", config_id)
+            logger.error("未找到ID为「%s」的配置项", self.config_id)
             exit()
 
         self._connect()
         torrents = (
             self.qb.torrents()
         )  # get_torrent(info_hash)并不能获得种子名，因此只能通过获取全部种子来获得种子名
+        self.torrent_name = ""
         for torrent in torrents:
             if torrent["hash"] == self.info_hash:
                 self.torrent_name = torrent["name"]
@@ -331,14 +320,27 @@ class Autoseed:
         # 一次只取一个，程序会迭代执行直至所有错误的任务被执行一遍
         info_hash = self.db.get_error_task()
         if info_hash:
-            self.info_hash = info_hash[0]
-            self.run()
+            self.run(info_hash[0])
 
 
 if __name__ == "__main__":
+    parse = ArgumentParser()
+    parse.add_argument("info_hash", help="种子的info_hash")
+    parse.add_argument(
+        "-c",
+        "--config",
+        help="发布时使用的配置项str/int UUID",
+        dest="config_id",
+        default=None,
+    )
+    argv = parse.parse_args()
+
     autoseed = Autoseed()
-    try:
-        autoseed.run()
-    except Exception as e:
-        traceback.print_exc()
-        logger.error("意料之外的错误：%s", repr(e))
+    if argv.info_hash:
+        try:
+            autoseed.run(argv.info_hash, argv.config_id)
+        except Exception as e:
+            traceback.print_exc()
+            logger.error("意料之外的错误：%s", repr(e))
+    else:
+        autoseed.retry_error_tasks()

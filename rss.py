@@ -3,7 +3,6 @@ import hashlib
 import json
 import os
 import time
-import urllib
 from argparse import ArgumentParser
 from datetime import datetime
 from urllib.parse import urlencode
