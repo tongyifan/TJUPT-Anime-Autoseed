@@ -72,3 +72,15 @@ class Database:
             "SELECT info_hash FROM tasks WHERE done = -1 ORDER BY RANDOM()"
         )
         return self.cursor.fetchone()
+
+    def get_incomplete_tasks(self, config_ids):
+        self.cursor.execute(
+            f"SELECT info_hash FROM tasks WHERE done = 0 AND config_id IN ({','.join(['?']*len(config_ids))})",
+            config_ids,
+        )
+        return self.cursor.fetchall()
+
+    def delete_task(self, info_hash):
+        self.cursor.execute(
+            "UPDATE tasks SET done = -999 WHERE info_hash = ?", (info_hash,)
+        )

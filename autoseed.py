@@ -319,6 +319,36 @@ class Autoseed:
         if info_hash:
             self.run(info_hash[0])
 
+    def recheck_qb_tasks(self, config_id):
+        self._connect()
+
+        configs = read_configs(
+            os.path.join(base_path, f"instance/configs/{config_id}.yaml")
+        )
+
+        config_ids = [str(configs[config]["id"]) for config in configs]
+
+        info_hashes = self.db.get_incomplete_tasks(config_ids)
+        if len(info_hashes) == 0:
+            return
+
+        info_hashes = [x[0] for x in info_hashes]
+        torrents = self.qb.torrents(hashes="|".join(info_hashes))
+
+        completed_torrents = []
+        for torrent in torrents:
+            this_info_hash = torrent["hash"]
+            info_hashes.remove(this_info_hash)
+
+            if "up" in torrent["state"].lower():
+                completed_torrents.append(this_info_hash)
+
+        for info_hash in info_hashes:
+            self.db.delete_task(info_hash)
+
+        for info_hash in completed_torrents:
+            self.run(info_hash)
+
 
 if __name__ == "__main__":
     parse = ArgumentParser()
@@ -333,11 +363,13 @@ if __name__ == "__main__":
     argv = parse.parse_args()
 
     autoseed = Autoseed()
-    if argv.info_hash != "retry":
+    if argv.info_hash == "retry":
+        autoseed.retry_error_tasks()
+    elif "recheck" in argv.info_hash:
+        autoseed.recheck_qb_tasks(argv.info_hash.split(":")[1])
+    else:
         try:
             autoseed.run(argv.info_hash, argv.config_id)
         except Exception as e:
             traceback.print_exc()
             logger.error("意料之外的错误：%s", repr(e))
-    else:
-        autoseed.retry_error_tasks()
