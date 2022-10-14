@@ -124,20 +124,18 @@ class RSSReader:
                         logger.error("解析种子错误，资源「%s」，地址「%s」", item, items[item])
                         break
 
-                    added = self.db.insert_task(
-                        str(self.configs[config]["id"]), info_hash
-                    )  # 如果插入任务失败，added=False
-                    if added:  # 如果添加任务成功，将种子文件丢到qb，并存储到torrents文件夹备用
-                        self.qb.download_from_file(
-                            torrent, savepath=QBITTORRENT_CONFIG["savepath"]
-                        )
-                        with open(
-                            os.path.join(
-                                base_path, "torrents/{}.torrent".format(info_hash)
-                            ),
-                            "wb",
-                        ) as fp:
-                            fp.write(torrent)
+                    self.qb.download_from_file(
+                        torrent, savepath=QBITTORRENT_CONFIG["savepath"]
+                    )
+                    with open(
+                        os.path.join(
+                            base_path, "torrents/{}.torrent".format(info_hash)
+                        ),
+                        "wb",
+                    ) as fp:
+                        fp.write(torrent)
+
+                    self.db.insert_task(str(self.configs[config]["id"]), info_hash)
 
                     break  # 不再继续匹配其他配置项
 
