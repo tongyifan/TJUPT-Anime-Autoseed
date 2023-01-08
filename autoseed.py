@@ -175,7 +175,7 @@ class Autoseed:
         if len(_animenum) == 0:
             info["animenum"] = ""
         elif len(_animenum) == 1:
-            info["animenum"] = f"{_animenum[0]:02d}"
+            info["animenum"] = _animenum[0]
         else:
             episodes = []
             for episode in _animenum:
@@ -187,9 +187,9 @@ class Autoseed:
 
             episodes.sort()
             info["animenum"] = (
-                f"{_animenum[0]:02d}-{_animenum[-1]:02d}"
+                f"{episodes[0]:02d}-{episodes[-1]:02d}"
                 if len(episodes) > 1
-                else f"{_animenum[0]:02d}"
+                else f"{episodes[0]:02d}"
             )
 
         if "cname" not in info or "issuedate" not in info or "descr" not in info:
