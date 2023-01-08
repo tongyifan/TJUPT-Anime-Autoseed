@@ -12,7 +12,7 @@ import feedparser
 import requests
 from qbittorrent import Client
 
-from config import RSS_ENTRIES, QBITTORRENT_CONFIG, KEYWORD_BLACKLIST, base_path
+from config import KEYWORD_BLACKLIST, QBITTORRENT_CONFIG, RSS_ENTRIES, base_path
 from utils.configReader import read_configs
 from utils.database import Database
 from utils.logger import logger
@@ -78,9 +78,13 @@ class RSSReader:
                                     link["href"].lstrip("magnet:?xt=urn:btih:")[:32]
                                 ).hex()
 
-                                items[
-                                    item["title"]
-                                ] = f"https://dl.dmhy.org/{datetime.fromtimestamp(published_timestamp).strftime('%Y/%m/%d')}/{hex_info_hash}.torrent"
+                                formatted_date = datetime.fromtimestamp(
+                                    published_timestamp
+                                ).strftime("%Y/%m/%d")
+                                items[item["title"]] = (
+                                    "https://dl.dmhy.org/"
+                                    f"{formatted_date}/{hex_info_hash}.torrent"
+                                )
                             else:
                                 items[item["title"]] = link["href"]
                             break

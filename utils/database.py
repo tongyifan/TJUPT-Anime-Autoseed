@@ -75,7 +75,8 @@ class Database:
 
     def get_incomplete_tasks(self, config_ids):
         self.cursor.execute(
-            f"SELECT info_hash FROM tasks WHERE done = 0 AND config_id IN ({','.join(['?']*len(config_ids))})",
+            f"SELECT info_hash FROM tasks "
+            f"WHERE done = 0 AND config_id IN ({','.join(['?']*len(config_ids))})",
             config_ids,
         )
         return self.cursor.fetchall()

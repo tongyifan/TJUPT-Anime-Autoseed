@@ -2,12 +2,13 @@ import glob
 import os
 import uuid
 
-from yaml import load, dump
+from yaml import dump, load
 
 from config import base_path
 
 try:
-    from yaml import CLoader as Loader, CDumper as Dumper
+    from yaml import CDumper as Dumper
+    from yaml import CLoader as Loader
 except ImportError:
     from yaml import Loader, Dumper
 

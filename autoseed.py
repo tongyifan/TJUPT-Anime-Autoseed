@@ -10,7 +10,7 @@ import bencoder
 import requests
 from qbittorrent import Client
 
-from config import QBITTORRENT_CONFIG, base_path, TJUPT_COOKIES_RAW, PTGEN_ENDPOINTS
+from config import PTGEN_ENDPOINTS, QBITTORRENT_CONFIG, TJUPT_COOKIES_RAW, base_path
 from utils.configReader import read_configs
 from utils.database import Database
 from utils.logger import logger
@@ -227,8 +227,11 @@ class Autoseed:
             reason = "未知原因"
             if "上传失败" in resp.text:
                 reason = re.findall(
-                    '<table width="100%" border="1" cellspacing="0" cellpadding="10"><tr><td class="text">'
-                    "(.*?)</td></tr></table></td></tr></table>",
+                    (
+                        '<table width="100%" border="1" cellspacing="0" cellpadding="10">'
+                        '<tr><td class="text">'
+                        "(.*?)</td></tr></table></td></tr></table>"
+                    ),
                     resp.text,
                 )
                 reason = reason[0] if reason else "未知原因"

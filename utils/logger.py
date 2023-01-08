@@ -1,8 +1,8 @@
 import logging
 import os
-from logging.handlers import RotatingFileHandler, HTTPHandler
+from logging.handlers import HTTPHandler, RotatingFileHandler
 
-from config import base_path, SERVERCHAN_TOKEN
+from config import SERVERCHAN_TOKEN, base_path
 
 instance_log_file = os.path.join(base_path, "logs/autoseed.log")
 
@@ -13,9 +13,9 @@ logFormatter = logging.Formatter(fmt=logging_format, datefmt=logging_datefmt)
 
 logger = logging.getLogger()
 logger.setLevel(logging.NOTSET)
-while (
-    logger.handlers
-):  # Remove un-format logging in Stream, or all of messages are appearing more than once.
+# Remove un-format logging in Stream,
+# or all of messages are appearing more than once.
+while logger.handlers:
     logger.handlers.pop()
 
 if instance_log_file:
