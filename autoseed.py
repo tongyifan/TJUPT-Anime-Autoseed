@@ -3,8 +3,9 @@ import re
 import traceback
 import uuid
 from argparse import ArgumentParser
+from collections import Counter
 from http.cookies import SimpleCookie
-from typing import Union
+from typing import List, Union
 
 import bencoder
 import requests
@@ -29,6 +30,7 @@ class Autoseed:
     torrent: dict = None
     torrent_name: str = None
     torrent_path: str = None
+    video_files: List[str] = None
 
     config_id: Union[int, str, uuid.UUID] = None
     config: dict = None
@@ -93,6 +95,17 @@ class Autoseed:
         if torrents:
             self.torrent = torrents[0]
             self.torrent_name = self.torrent["name"]
+            _content_path = self.torrent["content_path"]
+            if os.path.isdir(_content_path):
+                # 文件夹，找内部的各个视频文件
+                self.video_files = [
+                    file["name"].split(os.sep)[-1]
+                    for file in self.qb.get_torrent_files(self.info_hash)
+                    if os.path.splitext(file["name"])[1].lower() in ["mp4", "mkv"]
+                ]
+            else:
+                # 单文件
+                self.video_files = [self.torrent["name"]]
         else:
             logger.error("未在qB中找到info_hash为「%s」的种子", self.info_hash)
             exit()
@@ -125,35 +138,55 @@ class Autoseed:
                 if param in self.config["info"]:
                     info[param] = self.config["info"][param]
 
-        for pattern in pattern_group:
-            search = re.search(pattern, self.torrent_name)
-            if search:
-                pattern_result = search.groupdict()
-                info["ename"] = (
-                    pattern_result["search_name"].replace("_", " ")
-                    if pattern_result.get("search_name")
-                    else ""
-                )
-                info["substeam"] = (
-                    pattern_result["group"] if pattern_result.get("group") else ""
-                )
-                info["animenum"] = (
-                    pattern_result["episode"].zfill(2)
-                    if pattern_result.get("episode")
-                    else ""
-                )
-                info["format"] = (
-                    pattern_result["filetype"].upper()
-                    if pattern_result.get("filetype")
-                    else ""
-                )
-                break
+        _ename = Counter()
+        _substeam = Counter()
+        _format = Counter()
+        _resolution = Counter()
+        _animenum = []
+        for filename in self.video_files:
+            for pattern in pattern_group:
+                search = re.search(pattern, filename)
+                if search:
+                    pattern_result = search.groupdict()
+                    if "search_name" in pattern_result:
+                        _ename[pattern_result["search_name"].replace("_", " ")] += 1
+                    if "group" in pattern_result:
+                        _substeam[pattern_result["group"]] += 1
+                    if "filetype" in pattern_result:
+                        _format[pattern_result["filetype"]] += 1
+                    if "episode" in pattern_result:
+                        _animenum.append(pattern_result["episode"])
+                    break
+            _resolution_search = re.findall("(480|720|1080|1440|2160)", filename)
+            if _resolution_search:
+                _resolution[_resolution_search[0]] += 1
+        info["ename"] = _ename.most_common(1)[0][0] if _ename else ""
+        info["substeam"] = _substeam.most_common(1)[0][0] if _substeam else ""
+        info["format"] = self.get_torrent_format(
+            _format.most_common(1)[0][0] if _format else ""
+        )
+        info["resolution"] = (
+            f"{_resolution.most_common(1)[0][0]}p" if _resolution else ""
+        )
+        if len(_animenum) == 0:
+            info["animenum"] = ""
+        elif len(_animenum) == 1:
+            info["animenum"] = f"{_animenum[0]:02d}"
+        else:
+            episodes = []
+            for episode in _animenum:
+                _episode = episode.lower().split("v")[0]
+                try:
+                    episodes.append(int(_episode))
+                except ValueError:
+                    continue
 
-        info["format"] = self.get_torrent_format(info.get("format", ""))
-
-        resolution = re.findall("(480|720|1080|1440|2160)", self.torrent_name)
-        if resolution:
-            info["resolution"] = "{}p".format(resolution[0])
+            episodes.sort()
+            info["animenum"] = (
+                f"{_animenum[0]:02d}-{_animenum[-1]:02d}"
+                if len(episodes) > 1
+                else f"{_animenum[0]:02d}"
+            )
 
         if "cname" not in info or "issuedate" not in info or "descr" not in info:
             bangumi_info = self.get_bangumi_data()
