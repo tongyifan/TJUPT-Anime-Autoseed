@@ -157,7 +157,7 @@ class Autoseed:
                     if "group" in pattern_result:
                         _substeam[pattern_result["group"]] += 1
                     if "filetype" in pattern_result:
-                        _format[pattern_result["filetype"]] += 1
+                        _format[pattern_result["filetype"].upper()] += 1
                     if "episode" in pattern_result:
                         _animenum.append(pattern_result["episode"])
                     break
