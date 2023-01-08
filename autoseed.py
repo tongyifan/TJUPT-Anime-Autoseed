@@ -95,7 +95,11 @@ class Autoseed:
         if torrents:
             self.torrent = torrents[0]
             self.torrent_name = self.torrent["name"]
-            _content_path = self.torrent["content_path"]
+            _content_path = (
+                self.torrent["content_path"]
+                if "content_path" in self.torrent
+                else os.path.join(self.torrent["save_path"], self.torrent["name"])
+            )
             if os.path.isdir(_content_path):
                 # 文件夹，找内部的各个视频文件
                 self.video_files = [
