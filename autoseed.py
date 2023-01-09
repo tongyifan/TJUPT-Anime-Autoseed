@@ -105,7 +105,7 @@ class Autoseed:
                 self.video_files = [
                     file["name"].split(os.sep)[-1]
                     for file in self.qb.get_torrent_files(self.info_hash)
-                    if os.path.splitext(file["name"])[1].lower() in ["mp4", "mkv"]
+                    if os.path.splitext(file["name"])[1].lower() in [".mp4", ".mkv"]
                 ]
             else:
                 # 单文件
