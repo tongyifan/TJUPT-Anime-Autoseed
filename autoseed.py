@@ -122,7 +122,7 @@ class Autoseed:
         )
 
     def format_torrent_info(self) -> dict:
-        info = {"type": "405", "specificcat": "连载", "district": "日漫"}
+        info = {"type": "405", "specificcat": "连载", "district": "日漫", "chinese": "yes"}
         params = [
             "cname",  # 中文名
             "ename",  # 英文名
